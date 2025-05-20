@@ -2,6 +2,13 @@
 
 A two-tier web application that displays contributors to GitHub repositories in a visual gallery.
 
+[![Deploy Infrastructure](https://github.com/yourusername/github-contributor-gallery-vd/actions/workflows/deploy-infrastructure.yml/badge.svg)](https://github.com/yourusername/github-contributor-gallery-vd/actions/workflows/deploy-infrastructure.yml)
+[![Deploy Backend](https://github.com/yourusername/github-contributor-gallery-vd/actions/workflows/deploy-backend.yml/badge.svg)](https://github.com/yourusername/github-contributor-gallery-vd/actions/workflows/deploy-backend.yml)
+[![Deploy Frontend](https://github.com/yourusername/github-contributor-gallery-vd/actions/workflows/deploy-frontend.yml/badge.svg)](https://github.com/yourusername/github-contributor-gallery-vd/actions/workflows/deploy-frontend.yml)
+[![Full Deployment](https://github.com/yourusername/github-contributor-gallery-vd/actions/workflows/full-deployment.yml/badge.svg)](https://github.com/yourusername/github-contributor-gallery-vd/actions/workflows/full-deployment.yml)
+
+> **Note:** GitHub Actions workflows are located in the `.github/workflows` directory at the **repository root**, not inside the project directory.
+
 ## Features
 
 - Enter a GitHub username/organization and repository name
@@ -69,6 +76,29 @@ Create a `.env` file in the backend directory with the following variables:
 PORT=5000
 GITHUB_TOKEN=your_github_token_here (optional)
 ```
+
+## Azure Deployment
+
+This application can be deployed to Azure using GitHub Actions. For detailed instructions, see [Azure Deployment Guide](AZURE-DEPLOYMENT.md).
+
+### Azure Resources
+
+The deployment creates the following Azure resources:
+- App Service Plan (Basic B1 tier)
+- 2 App Services (for Frontend and Backend)
+- Application Insights
+- Log Analytics Workspace
+- User Assigned Managed Identity
+
+### GitHub Actions Workflows
+
+There are four GitHub Actions workflows:
+- **Deploy Infrastructure** - Creates Azure resources
+- **Deploy Backend** - Deploys the backend Node.js application
+- **Deploy Frontend** - Builds and deploys the frontend React application
+- **Full Deployment** - Runs all the above workflows in sequence in a single flow
+
+All workflows are manually triggered and can be run from the GitHub Actions tab. You can either run them individually in sequence or use the Full Deployment workflow to deploy everything at once.
 
 ## License
 

@@ -4,7 +4,8 @@ import ContributorGallery from './components/ContributorGallery';
 import SearchForm from './components/SearchForm';
 import Loading from './components/Loading';
 
-const API_URL = 'http://localhost:5000/api';
+// Use environment variable or fallback to localhost for development
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 function App() {
   const [contributors, setContributors] = useState([]);
