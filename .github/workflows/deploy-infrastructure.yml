@@ -1,0 +1,47 @@
+name: Deploy Infrastructure
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        default: 'dev'
+        type: choice
+        options:
+          - dev
+          - test
+          - prod
+
+env:
+  AZURE_RESOURCE_GROUP_NAME: rg-github-contributor-gallery-${{ github.event.inputs.environment }}
+
+jobs:
+  deploy-infrastructure:
+    name: Deploy Azure Infrastructure
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Azure login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+      
+      - name: Set Azure CLI defaults
+        run: |
+          az config set defaults.location=${{ secrets.AZURE_LOCATION }}
+          
+      - name: Deploy infrastructure
+        run: bash ./infra/deploy.sh
+        env:
+          AZURE_RESOURCE_GROUP_NAME: ${{ env.AZURE_RESOURCE_GROUP_NAME }}
+          AZURE_LOCATION: ${{ secrets.AZURE_LOCATION }}
+          ENVIRONMENT_NAME: ${{ github.event.inputs.environment }}
+          
+      - name: Log deployment outputs
+        run: |
+          echo "Frontend App URL: ${{ env.FRONTEND_URL }}"
+          echo "Backend App URL: ${{ env.BACKEND_URL }}"

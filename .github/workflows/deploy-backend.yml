@@ -1,0 +1,88 @@
+name: Deploy Backend
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        default: 'dev'
+        type: choice
+        options:
+          - dev
+          - test
+          - prod
+
+env:
+  NODE_VERSION: '18.x'
+  AZURE_RESOURCE_GROUP_NAME: rg-github-contributor-gallery-${{ github.event.inputs.environment }}
+
+jobs:
+  build-and-deploy:
+    name: Build & Deploy Backend
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+      
+      - name: Install dependencies
+        run: |
+          cd backend
+          npm ci
+      
+      - name: Azure login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+      
+      - name: Get web app name
+        run: |
+          # Use Azure CLI to find the backend web app name based on tags
+          BACKEND_APP_NAME=$(az webapp list \
+            --resource-group ${{ env.AZURE_RESOURCE_GROUP_NAME }} \
+            --query "[?tags.\"azd-service-name\"=='backend'].name" \
+            --output tsv)
+          
+          echo "BACKEND_APP_NAME=$BACKEND_APP_NAME" >> $GITHUB_ENV
+          
+          if [ -z "$BACKEND_APP_NAME" ]; then
+            echo "Error: Backend web app not found"
+            exit 1
+          fi
+          
+          echo "Found backend app: $BACKEND_APP_NAME"
+      
+      - name: Build and deploy backend
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: ${{ env.BACKEND_APP_NAME }}
+          package: ./backend
+      
+      - name: Configure app settings
+        run: |
+          if [ -n "${{ secrets.GITHUB_TOKEN }}" ]; then
+            echo "Setting GitHub token in app settings"
+            az webapp config appsettings set \
+              --resource-group ${{ env.AZURE_RESOURCE_GROUP_NAME }} \
+              --name ${{ env.BACKEND_APP_NAME }} \
+              --settings GITHUB_TOKEN="${{ secrets.GITHUB_TOKEN }}" \
+              --output none
+          fi
+      
+      - name: Log deployment URL
+        run: |
+          BACKEND_URL=$(az webapp show \
+            --resource-group ${{ env.AZURE_RESOURCE_GROUP_NAME }} \
+            --name ${{ env.BACKEND_APP_NAME }} \
+            --query "defaultHostName" \
+            --output tsv)
+          
+          echo "Backend deployed to: https://$BACKEND_URL"
