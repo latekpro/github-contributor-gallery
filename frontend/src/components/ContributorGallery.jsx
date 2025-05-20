@@ -10,12 +10,14 @@ function ContributorGallery({ contributors }) {
   return (
     <div className="gallery">
       {contributors.map((contributor) => (
-        <div key={contributor.id} className="contributor-card">
-          <img
-            src={contributor.avatar_url}
-            alt={`${contributor.login}'s avatar`}
-            className="avatar"
-          />
+        <div key={contributor.id} className="contributor-card">          <div className="avatar-container">
+            <img
+              src={contributor.avatar_url}
+              alt={`${contributor.login}'s avatar`}
+              className="avatar"
+              title={`${contributor.login} - ${contributor.contributions} contributions`}
+            />
+          </div>
           <h3 className="username">
             <a href={contributor.html_url} target="_blank" rel="noopener noreferrer">
               {contributor.login}
